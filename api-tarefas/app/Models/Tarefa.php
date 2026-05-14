@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Tarefa extends Model
+{
+    protected $fillable = ['titulo', 'descricao', 'concluida', 'user_id'];
+
+    protected $casts = [
+        'concluida' => 'boolean',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
