@@ -10,7 +10,7 @@ class TarefaController extends Controller
 {
     public function index(Request $request)
     {
-        return TarefaResource::collection($request->user()->tarefas);
+        return TarefaResource::collection($request->user()->tarefas()->latest()->get());
     }
 
     public function store(Request $request)
@@ -18,6 +18,8 @@ class TarefaController extends Controller
         $request->validate([
             'titulo'    => 'required|string|max:255',
             'descricao' => 'nullable|string',
+            'prioridade' => 'nullable|in:baixa,media,alta',
+            'data_vencimento' => 'nullable|date',
         ]);
 
         $tarefa = $request->user()->tarefas()->create($request->all());
@@ -42,6 +44,8 @@ class TarefaController extends Controller
             'titulo'    => 'sometimes|required|string|max:255',
             'descricao' => 'nullable|string',
             'concluida' => 'boolean',
+            'prioridade' => 'nullable|in:baixa,media,alta',
+            'data_vencimento' => 'nullable|date',
         ]);
 
         $tarefa->update($request->all());

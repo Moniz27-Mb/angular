@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tarefa extends Model
 {
-    protected $fillable = ['titulo', 'descricao', 'concluida', 'user_id'];
+    protected $fillable = ['titulo', 'descricao', 'concluida', 'user_id', 'prioridade', 'data_vencimento'];
 
     protected $casts = [
         'concluida' => 'boolean',

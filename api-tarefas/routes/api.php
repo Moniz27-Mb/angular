@@ -15,4 +15,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user',     [AuthController::class, 'update']);   // <- adiciona
     Route::delete('/user',  [AuthController::class, 'destroy']);  // <- adiciona
     Route::apiResource('tarefas', TarefaController::class);
+
+    // Rotas de Admin
+    Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
+        Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
+        Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
+        Route::get('/users/{user}/tarefas', [App\Http\Controllers\AdminController::class, 'userTasks']);
+        Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'destroyUser']);
+    });
 });

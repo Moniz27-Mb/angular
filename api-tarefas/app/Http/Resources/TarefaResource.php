@@ -14,6 +14,8 @@ class TarefaResource extends JsonResource
             'titulo'     => $this->titulo,
             'descricao'  => $this->descricao,
             'concluida'  => $this->concluida,
+            'prioridade' => $this->prioridade,
+            'data_vencimento' => $this->data_vencimento,
             'criado_em'  => $this->created_at->format('d/m/Y'),
         ];
     }
