@@ -77,4 +77,21 @@ class AdminController extends Controller
         $user->delete();
         return response()->json(['mensagem' => 'Usuário excluído com sucesso']);
     }
+
+    public function toggleAdmin(User $user)
+    {
+        // Proteção: não deixar o admin se auto-remover o privilégio por acidente
+        if (auth()->id() === $user->id) {
+            return response()->json(['mensagem' => 'Você não pode alterar seu próprio privilégio administrativo'], 403);
+        }
+
+        $user->is_admin = !$user->is_admin;
+        $user->save();
+
+        $status = $user->is_admin ? 'promovido a administrador' : 'removido do cargo administrativo';
+        return response()->json([
+            'mensagem' => "Usuário {$status} com sucesso",
+            'is_admin' => $user->is_admin
+        ]);
+    }
 }

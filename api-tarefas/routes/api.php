@@ -23,5 +23,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
         Route::get('/users/{user}/tarefas', [App\Http\Controllers\AdminController::class, 'userTasks']);
         Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'destroyUser']);
+        Route::patch('/users/{user}/toggle-admin', [App\Http\Controllers\AdminController::class, 'toggleAdmin']);
     });
 });

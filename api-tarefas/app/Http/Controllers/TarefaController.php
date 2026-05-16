@@ -15,6 +15,10 @@ class TarefaController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->user()->is_admin) {
+            return response()->json(['mensagem' => 'Administradores não podem possuir tarefas.'], 403);
+        }
+
         $request->validate([
             'titulo'    => 'required|string|max:255',
             'descricao' => 'nullable|string',
