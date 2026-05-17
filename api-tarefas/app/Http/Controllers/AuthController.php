@@ -112,4 +112,28 @@ public function destroy(Request $request)
         'mensagem' => 'Conta eliminada com sucesso'
     ]);
 }
+
+    // POST /api/user/avatar
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        $user = $request->user();
+        
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+            }
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $path;
+            $user->save();
+        }
+
+        return response()->json([
+            'mensagem' => 'Avatar atualizado com sucesso',
+            'user' => $user
+        ]);
+    }
 }

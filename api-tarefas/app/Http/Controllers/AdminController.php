@@ -88,10 +88,27 @@ class AdminController extends Controller
         $user->is_admin = !$user->is_admin;
         $user->save();
 
+        if ($user->is_admin) {
+            $user->tarefas()->delete();
+        }
+
         $status = $user->is_admin ? 'promovido a administrador' : 'removido do cargo administrativo';
         return response()->json([
             'mensagem' => "Usuário {$status} com sucesso",
             'is_admin' => $user->is_admin
         ]);
+    }
+
+    public function trashedUsers()
+    {
+        $users = User::onlyTrashed()->withCount('tarefas')->get();
+        return response()->json(['users' => $users]);
+    }
+
+    public function restoreUser($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+        return response()->json(['mensagem' => 'Usuário restaurado com sucesso', 'user' => $user], 200);
     }
 }

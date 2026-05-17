@@ -65,4 +65,16 @@ class TarefaController extends Controller
         $tarefa->delete();
         return response()->json(['mensagem' => 'Tarefa eliminada'], 200);
     }
+
+    public function trashed(Request $request)
+    {
+        return TarefaResource::collection($request->user()->tarefas()->onlyTrashed()->latest()->get());
+    }
+
+    public function restore(Request $request, $id)
+    {
+        $tarefa = $request->user()->tarefas()->onlyTrashed()->findOrFail($id);
+        $tarefa->restore();
+        return response()->json(['mensagem' => 'Tarefa restaurada com sucesso', 'tarefa' => new TarefaResource($tarefa)], 200);
+    }
 }

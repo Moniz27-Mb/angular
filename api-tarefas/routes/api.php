@@ -13,13 +13,19 @@ Route::post('/login',    [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout',  [AuthController::class, 'logout']);
     Route::put('/user',     [AuthController::class, 'update']);   // <- adiciona
+    Route::post('/user/avatar', [AuthController::class, 'uploadAvatar']);
     Route::delete('/user',  [AuthController::class, 'destroy']);  // <- adiciona
+    
+    Route::get('tarefas/trashed', [TarefaController::class, 'trashed']);
+    Route::post('tarefas/{id}/restore', [TarefaController::class, 'restore']);
     Route::apiResource('tarefas', TarefaController::class);
 
     // Rotas de Admin
     Route::middleware('admin')->prefix('admin')->group(function () {
         Route::get('/stats', [App\Http\Controllers\AdminController::class, 'stats']);
         Route::get('/users', [App\Http\Controllers\AdminController::class, 'users']);
+        Route::get('/users/trashed', [App\Http\Controllers\AdminController::class, 'trashedUsers']);
+        Route::post('/users/{id}/restore', [App\Http\Controllers\AdminController::class, 'restoreUser']);
         Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
         Route::get('/users/{user}/tarefas', [App\Http\Controllers\AdminController::class, 'userTasks']);
         Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'destroyUser']);
