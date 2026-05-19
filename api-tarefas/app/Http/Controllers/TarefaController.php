@@ -19,11 +19,13 @@ class TarefaController extends Controller
             return response()->json(['mensagem' => 'Administradores não podem possuir tarefas.'], 403);
         }
 
+        $anoAtual = date('Y');
+
         $request->validate([
             'titulo'    => 'required|string|max:255',
             'descricao' => 'nullable|string',
             'prioridade' => 'nullable|in:baixa,media,alta',
-            'data_vencimento' => 'nullable|date',
+            'data_vencimento' => 'nullable|date|after_or_equal:' . $anoAtual . '-01-01',
         ]);
 
         $tarefa = $request->user()->tarefas()->create($request->all());
@@ -44,12 +46,14 @@ class TarefaController extends Controller
             return response()->json(['mensagem' => 'Não autorizado'], 403);
         }
 
+        $anoAtual = date('Y');
+
         $request->validate([
             'titulo'    => 'sometimes|required|string|max:255',
             'descricao' => 'nullable|string',
             'concluida' => 'boolean',
             'prioridade' => 'nullable|in:baixa,media,alta',
-            'data_vencimento' => 'nullable|date',
+            'data_vencimento' => 'nullable|date|after_or_equal:' . $anoAtual . '-01-01',
         ]);
 
         $tarefa->update($request->all());
