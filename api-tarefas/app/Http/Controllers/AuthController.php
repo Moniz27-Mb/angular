@@ -123,11 +123,11 @@ public function destroy(Request $request)
         $user = $request->user();
         
         if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
-            }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = $path;
+            $file = $request->file('avatar');
+            $base64 = base64_encode(file_get_contents($file->getRealPath()));
+            $mime = $file->getClientMimeType();
+            
+            $user->avatar = 'data:' . $mime . ';base64,' . $base64;
             $user->save();
         }
 
