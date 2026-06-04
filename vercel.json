@@ -1,0 +1,5 @@
+{
+  "framework": "angular",
+  "buildCommand": "cd front-tarefas && npm run build",
+  "outputDirectory": "front-tarefas/dist/front-tarefas/browser"
+}
