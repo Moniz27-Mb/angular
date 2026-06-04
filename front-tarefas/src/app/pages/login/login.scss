@@ -1,0 +1,117 @@
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+  background: radial-gradient(circle at top right, var(--color-primary-light), var(--color-bg-main) 60%);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    right: -10%;
+    width: 50%;
+    height: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+    filter: blur(80px);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -15%;
+    left: -15%;
+    width: 40%;
+    height: 40%;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+    filter: blur(80px);
+  }
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 440px;
+  padding: 3rem 2.5rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: var(--shadow-xl), var(--shadow-premium);
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: var(--border-radius-lg);
+  z-index: 10;
+
+  .auth-header {
+    h2 {
+      color: var(--color-text-header);
+      font-weight: 800;
+      font-family: var(--font-family-display);
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: var(--color-text-secondary);
+      font-size: 0.9375rem;
+    }
+  }
+
+  .input-group {
+    label {
+      color: var(--color-text-secondary);
+      font-weight: 600;
+    }
+  }
+
+  .input-control {
+    background: var(--color-bg-surface);
+    border-color: var(--border-color);
+    color: var(--color-text-header);
+    box-shadow: var(--shadow-sm);
+
+    &:focus {
+      border-color: var(--color-primary);
+      background: var(--color-bg-surface);
+      box-shadow: 0 0 0 4px var(--color-primary-light);
+    }
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+  }
+
+  .auth-footer {
+    color: var(--color-text-secondary);
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+
+    a {
+      color: var(--color-primary);
+      font-weight: 700;
+      
+      &:hover {
+        color: var(--color-primary-dark);
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-panel {
+    padding: 2.5rem 1.5rem;
+  }
+}

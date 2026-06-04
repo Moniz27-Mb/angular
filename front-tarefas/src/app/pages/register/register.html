@@ -1,0 +1,71 @@
+<div class="auth-container">
+  <div class="glass-panel auth-panel">
+    <div class="auth-header">
+      <h1 class="logo-brand">Fanya</h1>
+      <h2>Crie sua conta</h2>
+      <p>Junte-se a nós e comece a gerenciar suas tarefas</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" [formGroup]="registerForm">
+      <div class="alert alert-danger" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <div class="input-group">
+        <label for="name">Nome</label>
+        <input 
+          type="text" 
+          id="name" 
+          formControlName="name" 
+          class="input-control" 
+          [class.input-error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+          placeholder="Seu nome"
+        >
+        <div class="error-feedback" *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+          <small *ngIf="registerForm.get('name')?.errors?.['required']">O nome é obrigatório.</small>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="email">E-mail</label>
+        <input 
+          type="email" 
+          id="email" 
+          formControlName="email" 
+          class="input-control" 
+          [class.input-error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+          placeholder="seu@email.com"
+        >
+        <div class="error-feedback" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+          <small *ngIf="registerForm.get('email')?.errors?.['required']">O e-mail é obrigatório.</small>
+          <small *ngIf="registerForm.get('email')?.errors?.['email']">Digite um e-mail válido.</small>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Senha</label>
+        <input 
+          type="password" 
+          id="password" 
+          formControlName="password" 
+          class="input-control" 
+          [class.input-error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+          placeholder="Sua senha (mín. 6 caracteres)"
+        >
+        <div class="error-feedback" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+          <small *ngIf="registerForm.get('password')?.errors?.['required']">A senha é obrigatória.</small>
+          <small *ngIf="registerForm.get('password')?.errors?.['minlength']">A senha deve ter no mínimo 6 caracteres.</small>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="registerForm.invalid || isLoading">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+        <span>{{ isLoading ? 'Registrando...' : 'Registrar-se' }}</span>
+      </button>
+
+      <div class="auth-footer">
+        Já tem uma conta? <a routerLink="/login">Entrar</a>
+      </div>
+    </form>
+  </div>
+</div>

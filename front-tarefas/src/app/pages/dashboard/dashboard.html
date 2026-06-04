@@ -1,0 +1,210 @@
+<div class="dashboard-wrapper">
+  <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+    <!-- Header -->
+    <header class="content-header">
+      <div class="header-branding">
+        <h1 class="logo-brand">Fanya</h1>
+        <div class="user-welcome">
+          <h2>Olá, {{ user?.name || 'Usuário' }}</h2>
+          <p>Aqui estão suas tarefas pendentes</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="toggleForm()" *ngIf="!isFormOpen">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Nova Tarefa</span>
+        </button>
+      </div>
+    </header>
+  
+  <!-- Search Bar -->
+  <section class="search-section" *ngIf="!isLoading">
+    <div class="search-wrapper glass-panel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por título ou descrição..." class="search-input">
+      <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm = ''">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <section class="stats-grid" *ngIf="!isLoading">
+    <div class="stat-card glass-panel">
+      <span class="stat-value">{{ stats.total }}</span>
+      <span class="stat-label">Total</span>
+    </div>
+    <div class="stat-card glass-panel">
+      <span class="stat-value">{{ stats.pending }}</span>
+      <span class="stat-label">Pendentes</span>
+    </div>
+    <div class="stat-card glass-panel">
+      <span class="stat-value">{{ stats.completed }}</span>
+      <span class="stat-label">Concluídas</span>
+    </div>
+  </section>
+
+  <!-- Form Nova/Editar Tarefa -->
+  <div class="form-container glass-panel" *ngIf="isFormOpen">
+    <h3>{{ editingTarefaId ? 'Editar Tarefa' : 'Nova Tarefa' }}</h3>
+    <form [formGroup]="tarefaForm" (ngSubmit)="salvarTarefa()">
+      <div class="input-group">
+        <label for="titulo">Título da Tarefa</label>
+        <input type="text" id="titulo" formControlName="titulo" class="input-control" placeholder="O que precisa ser feito?">
+      </div>
+      <div class="input-group">
+        <label for="descricao">Descrição (opcional)</label>
+        <textarea id="descricao" formControlName="descricao" class="input-control" rows="3" placeholder="Detalhes..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="input-group">
+          <label for="prioridade">Prioridade</label>
+          <select id="prioridade" formControlName="prioridade" class="input-control">
+            <option value="baixa">Baixa</option>
+            <option value="media">Média</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="data_vencimento">Data de Vencimento</label>
+          <input type="date" id="data_vencimento" formControlName="data_vencimento" class="input-control" [min]="minDate">
+          <small class="error-text" *ngIf="tarefaForm.get('data_vencimento')?.hasError('dataPassada') && tarefaForm.get('data_vencimento')?.touched" style="color: #ef4444; font-size: 0.8rem; margin-top: 0.25rem; display: block;">
+            A data de vencimento não pode estar no passado.
+          </small>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="tarefaForm.invalid || isSaving">
+          <svg *ngIf="!isSaving" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <div *ngIf="isSaving" class="spinner-sm"></div>
+          <span>{{ isSaving ? 'Processando...' : (editingTarefaId ? 'Atualizar' : 'Salvar') }}</span>
+        </button>
+        <button type="button" class="btn btn-outline" (click)="toggleForm()" [disabled]="isSaving">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filter & Sort Bar -->
+  <div class="filter-bar" *ngIf="!isFormOpen && !isLoading">
+    <div class="filter-group">
+      <button class="filter-btn" [class.active]="currentFilter === 'all' && !showTrashed" (click)="setFilter('all'); showTrashed = false">Todas</button>
+      <button class="filter-btn" [class.active]="currentFilter === 'pending' && !showTrashed" (click)="setFilter('pending'); showTrashed = false">Pendentes</button>
+      <button class="filter-btn" [class.active]="currentFilter === 'completed' && !showTrashed" (click)="setFilter('completed'); showTrashed = false">Concluídas</button>
+      <button class="filter-btn" style="color: #ef4444;" [class.active]="showTrashed" (click)="toggleTrashed()">Lixeira</button>
+    </div>
+    
+    <div class="sort-group">
+      <span class="sort-label">Ordenar por:</span>
+      <select class="sort-select" [ngModel]="sortBy" (ngModelChange)="setSort($event)">
+        <option value="newest">Mais Recentes</option>
+        <option value="date">Data de Vencimento</option>
+        <option value="priority">Prioridade</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Lista de Tarefas -->
+  <section class="tarefas-list" *ngIf="!isFormOpen && !showTrashed">
+    <div *ngIf="isLoading" class="loading-state glass-panel">
+      <div class="spinner"></div>
+      <p>Carregando suas tarefas...</p>
+    </div>
+
+    <div *ngIf="!isLoading && filteredTarefas.length === 0" class="empty-state glass-panel">
+      <div class="empty-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M9 14h6"></path><path d="M9 18h6"></path><path d="M9 10h6"></path></svg>
+      </div>
+      <p *ngIf="currentFilter === 'all'">Você não tem nenhuma tarefa no momento.</p>
+      <p *ngIf="currentFilter === 'pending'">Não há tarefas pendentes! Bom trabalho.</p>
+      <p *ngIf="currentFilter === 'completed'">Nenhuma tarefa concluída ainda.</p>
+      <button *ngIf="currentFilter === 'all'" class="btn btn-outline" (click)="toggleForm()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>Criar primeira tarefa</span>
+      </button>
+    </div>
+
+    <div class="tarefa-card glass-panel" *ngFor="let tarefa of filteredTarefas" 
+         [class.completed]="tarefa.concluida" 
+         [class.overdue]="!tarefa.concluida && isOverdue(tarefa.data_vencimento)">
+      <div class="tarefa-content">
+        <div class="checkbox-wrapper">
+          <input type="checkbox" [checked]="tarefa.concluida" (change)="concluirTarefa(tarefa)">
+        </div>
+        <div class="tarefa-text" (click)="!tarefa.concluida && editarTarefa(tarefa)">
+          <div class="tarefa-title-row">
+            <h4>{{ tarefa.titulo }}</h4>
+            <div class="badges">
+              <span class="badge" [class]="'badge-' + tarefa.prioridade" *ngIf="tarefa.prioridade">
+                {{ tarefa.prioridade | titlecase }}
+              </span>
+              <span class="badge badge-date" *ngIf="tarefa.data_vencimento" [class.date-alert]="!tarefa.concluida && isOverdue(tarefa.data_vencimento)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                {{ tarefa.data_vencimento | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          </div>
+          <p *ngIf="tarefa.descricao">{{ tarefa.descricao }}</p>
+        </div>
+      </div>
+      <div class="tarefa-actions">
+        <button class="btn-icon edit" (click)="editarTarefa(tarefa)" title="Editar" *ngIf="!tarefa.concluida">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </button>
+        <button class="btn-icon delete" (click)="confirmarExclusao(tarefa.id)" title="Excluir">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lista da Lixeira -->
+  <section class="tarefas-list" *ngIf="!isFormOpen && showTrashed">
+    <div *ngIf="isLoadingTrashed" class="loading-state glass-panel">
+      <div class="spinner"></div>
+      <p>A procurar na lixeira...</p>
+    </div>
+
+    <div *ngIf="!isLoadingTrashed && trashedTarefas.length === 0" class="empty-state glass-panel">
+      <p>A tua lixeira está vazia.</p>
+    </div>
+
+    <div class="tarefa-card glass-panel" *ngFor="let tarefa of trashedTarefas" style="opacity: 0.7;">
+      <div class="tarefa-content">
+        <div class="tarefa-text">
+          <div class="tarefa-title-row">
+            <h4><del>{{ tarefa.titulo }}</del></h4>
+            <div class="badges">
+              <span class="badge" [class]="'badge-' + tarefa.prioridade" *ngIf="tarefa.prioridade">
+                {{ tarefa.prioridade | titlecase }}
+              </span>
+            </div>
+          </div>
+          <p *ngIf="tarefa.descricao">{{ tarefa.descricao }}</p>
+        </div>
+      </div>
+      <div class="tarefa-actions">
+        <button class="btn btn-outline" (click)="restaurarTarefa(tarefa.id)" title="Restaurar" style="font-size: 0.8rem; padding: 0.25rem 0.5rem; height: auto;">
+          Restaurar
+        </button>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <!-- Custom Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="cancelarExclusao()">
+    <div class="modal-content glass-panel confirmation-modal" (click)="$event.stopPropagation()">
+      <div class="modal-icon-alert">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      </div>
+      <h3>Excluir Tarefa?</h3>
+      <p>Esta ação não pode ser desfeita. A tarefa será removida permanentemente.</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="cancelarExclusao()">Cancelar</button>
+        <button class="btn btn-danger" (click)="excluirTarefa()">Sim, Excluir</button>
+      </div>
+    </div>
+  </div>
+</div>

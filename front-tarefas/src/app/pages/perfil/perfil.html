@@ -1,0 +1,97 @@
+<div class="perfil-wrapper">
+  <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+    <header class="content-header">
+      <div class="header-title">
+        <h1 class="page-title">Meu Perfil</h1>
+        <p class="page-subtitle">Gerencie suas informações e segurança na Fanya</p>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <div class="perfil-grid">
+        <!-- Seção de Avatar -->
+        <section class="data-section glass-panel">
+          <div class="section-header">
+            <div class="header-with-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <h3>Foto de Perfil</h3>
+            </div>
+          </div>
+          <div class="avatar-upload-container" style="display: flex; align-items: center; gap: 1.5rem; margin-top: 1.5rem; margin-bottom: 1rem;">
+            <div class="current-avatar" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: rgba(99, 102, 241, 0.1); border: 2px solid rgba(99, 102, 241, 0.3); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--color-primary); font-weight: bold;">
+              <img *ngIf="getAvatarUrl()" [src]="getAvatarUrl()" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+              <span *ngIf="!getAvatarUrl()">{{ user?.name?.charAt(0) || 'U' }}</span>
+            </div>
+            <div>
+              <label for="avatar" class="btn btn-primary" style="cursor: pointer; display: inline-flex;">
+                {{ isUploadingAvatar ? 'A fazer upload...' : 'Escolher nova foto' }}
+              </label>
+              <input type="file" id="avatar" (change)="onFileSelected($event)" accept="image/*" style="display: none;" [disabled]="isUploadingAvatar">
+            </div>
+          </div>
+        </section>
+
+        <!-- Seção de Dados Pessoais -->
+        <section class="data-section glass-panel">
+          <div class="section-header">
+            <div class="header-with-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <h3>Dados Pessoais</h3>
+            </div>
+          </div>
+          
+          <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+            <div class="input-group">
+              <label for="name">Nome Completo</label>
+              <input type="text" id="name" formControlName="name" class="input-control" placeholder="Seu nome">
+            </div>
+            <div class="input-group">
+              <label for="email">E-mail</label>
+              <input type="email" id="email" formControlName="email" class="input-control" placeholder="seu@email.com">
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid || isSavingProfile">
+                {{ isSavingProfile ? 'Salvando...' : 'Salvar Alterações' }}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Seção de Segurança -->
+        <section class="data-section glass-panel">
+          <div class="section-header">
+            <div class="header-with-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <h3>Segurança</h3>
+            </div>
+          </div>
+          
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <div class="input-group">
+              <label for="current_password">Senha Atual</label>
+              <input type="password" id="current_password" formControlName="current_password" class="input-control" placeholder="••••••••">
+            </div>
+            <div class="input-group">
+              <label for="password">Nova Senha</label>
+              <input type="password" id="password" formControlName="password" class="input-control" placeholder="Mínimo 6 caracteres">
+            </div>
+            <div class="input-group">
+              <label for="password_confirmation">Confirmar Nova Senha</label>
+              <input type="password" id="password_confirmation" formControlName="password_confirmation" class="input-control" placeholder="Repita a nova senha">
+              <small class="error-text" *ngIf="passwordForm.errors?.['mismatch'] && passwordForm.get('password_confirmation')?.touched">
+                As senhas não coincidem.
+              </small>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-outline" [disabled]="passwordForm.invalid || isSavingPassword">
+                {{ isSavingPassword ? 'Alterando...' : 'Alterar Senha' }}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>

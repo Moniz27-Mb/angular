@@ -1,0 +1,133 @@
+.perfil-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg-main);
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 260px;
+  padding: 2.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  max-width: 1200px;
+}
+
+.content-header {
+  padding-bottom: 0.5rem;
+  
+  .page-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--color-text-header);
+    margin-bottom: 0.5rem;
+    font-family: var(--font-family-display);
+    letter-spacing: -0.02em;
+  }
+  
+  .page-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+.perfil-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+  gap: 2.5rem;
+}
+
+.data-section {
+  background: var(--color-bg-surface);
+  padding: 2.5rem;
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-premium);
+    border-color: var(--color-primary-light);
+  }
+
+  .section-header {
+    margin-bottom: 2.5rem;
+    
+    .header-with-icon {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      color: var(--color-primary);
+
+      h3 {
+        font-size: 1.375rem;
+        color: var(--color-text-header);
+        margin: 0;
+        font-weight: 800;
+      }
+
+      svg {
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+
+  /* Force input background to be white in this context */
+  .input-control {
+    background: var(--color-bg-main);
+    border-color: var(--border-color);
+    color: var(--color-text-header);
+    
+    &:focus {
+      background: white;
+      border-color: var(--color-primary);
+    }
+  }
+}
+
+.error-text {
+  color: var(--color-danger);
+  font-size: 0.8125rem;
+  margin-top: 0.5rem;
+  display: block;
+  font-weight: 600;
+}
+
+.form-actions {
+  margin-top: 2.5rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1.5rem;
+    padding-top: 100px;
+  }
+
+  .perfil-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .data-section {
+    padding: 1.5rem;
+    
+    .section-header {
+      margin-bottom: 1.75rem;
+    }
+  }
+
+  .form-actions {
+    margin-top: 2rem;
+    
+    button {
+      width: 100%;
+    }
+  }
+}
