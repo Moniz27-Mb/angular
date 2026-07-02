@@ -66,6 +66,10 @@ export class AdminDashboard implements OnInit {
   showTasksModal = false;
   isLoadingTasks = false;
 
+  // Delete User Modal
+  showDeleteUserModal = false;
+  userToDeleteId: number | null = null;
+
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       if (params['tab']) {
@@ -77,18 +81,9 @@ export class AdminDashboard implements OnInit {
     });
 
     this.loadData();
-    this.loadTrashedUsers();
-  
-  // debug — remove depois
-  setTimeout(() => {
-    console.log('isLoading após 3s:', this.isLoading);
-    console.log('stats:', this.stats);
-    console.log('users:', this.users);
-  }, 3000);
-}
+  }
 
  loadData() {
-  console.log('Token no momento do loadData:', sessionStorage.getItem('token')); // debug
   this.isLoading = true;
   
   forkJoin({
@@ -107,9 +102,6 @@ export class AdminDashboard implements OnInit {
     },
     error: (err) => {
       console.error('Erro ao carregar dados do admin', err);
-      console.log('Status do erro:', err.status);
-      console.log('Token presente:', sessionStorage.getItem('token'));
-      
       this.notification.error('Erro ao carregar dados administrativos.');
       
       if (err.status === 401 || err.status === 403) {
@@ -171,19 +163,32 @@ export class AdminDashboard implements OnInit {
     this.selectedUserName = '';
   }
 
-  excluirUsuario(id: number) {
-    if (confirm('Tem certeza que deseja excluir este usuário? Todas as suas tarefas serão removidas.')) {
-      this.adminService.deleteUser(id).subscribe({
-        next: () => {
-          this.users = this.users.filter(u => u.id !== id);
-          this.loadData(); // Recarrega stats
-          this.notification.success('Usuário removido com sucesso.');
-        },
-        error: (err) => {
-          this.notification.error('Erro ao excluir usuário: ' + (err.error?.mensagem || err.message));
-        }
-      });
-    }
+  confirmarExclusaoUsuario(id: number) {
+    this.userToDeleteId = id;
+    this.showDeleteUserModal = true;
+  }
+
+  cancelarExclusaoUsuario() {
+    this.showDeleteUserModal = false;
+    this.userToDeleteId = null;
+  }
+
+  excluirUsuario() {
+    if (!this.userToDeleteId) return;
+    const id = this.userToDeleteId;
+    this.showDeleteUserModal = false;
+    this.userToDeleteId = null;
+
+    this.adminService.deleteUser(id).subscribe({
+      next: () => {
+        this.users = this.users.filter(u => u.id !== id);
+        this.loadData();
+        this.notification.success('Usuário removido com sucesso.');
+      },
+      error: (err) => {
+        this.notification.error('Erro ao excluir usuário: ' + (err.error?.mensagem || err.message));
+      }
+    });
   }
 
   alternarAdmin(id: number) {

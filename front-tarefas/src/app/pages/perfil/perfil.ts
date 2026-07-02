@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth';
 import { Router, RouterModule } from '@angular/router';
 import { NotificationService } from '../../core/services/notification';
 import { SidebarComponent } from '../../components/sidebar/sidebar';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-perfil',
@@ -68,7 +69,7 @@ export class Perfil implements OnInit {
     if (!this.user?.avatar) return null;
     return this.user.avatar.startsWith('data:image') 
       ? this.user.avatar 
-      : `http://localhost:8000/storage/${this.user.avatar}`;
+      : `${environment.apiUrl.replace('/api', '')}/storage/${this.user.avatar}`;
   }
 
   passwordMatchValidator(g: FormGroup) {

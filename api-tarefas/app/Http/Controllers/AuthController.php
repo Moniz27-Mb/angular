@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -18,16 +19,24 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
+            'name'              => $request->name,
+            'email'             => $request->email,
+            'password'          => Hash::make($request->password),
+            'email_verified_at' => now(),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'token' => $token,
-            'user'  => $user,
+            'mensagem' => 'Conta criada com sucesso.',
+            'token'    => $token,
+            'user'     => [
+                'id'       => $user->id,
+                'name'     => $user->name,
+                'email'    => $user->email,
+                'is_admin' => (bool) $user->is_admin,
+                'avatar'   => $user->avatar,
+            ],
         ], 201);
     }
 
@@ -45,6 +54,12 @@ class AuthController extends Controller
             return response()->json([
                 'mensagem' => 'Credenciais inválidas'
             ], 401);
+        }
+
+        // Auto-verificar utilizadores antigos que não tenham o e-mail verificado
+        if (!$user->email_verified_at) {
+            $user->email_verified_at = now();
+            $user->save();
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;

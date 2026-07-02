@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../services/auth';
 
 @Component({
@@ -22,6 +23,10 @@ export class Register {
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
+  verifyForm: FormGroup = this.fb.group({
+    code: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
+  });
+
   isLoading = false;
   errorMessage = '';
 
@@ -37,7 +42,8 @@ export class Register {
     const { name, email, password } = this.registerForm.value;
 
     this.authService.register(name, email, password).subscribe({
-      next: () => {
+      next: (res) => {
+        this.isLoading = false;
         this.router.navigate(['/tarefas']);
       },
       error: (err) => {
@@ -45,5 +51,9 @@ export class Register {
         this.errorMessage = err.error?.mensagem || 'Falha ao registrar. Tente novamente.';
       }
     });
+  }
+
+  loginWithGoogle() {
+    this.authService.loginWithGoogle();
   }
 }

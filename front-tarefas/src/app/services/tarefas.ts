@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface Tarefa {
   id: number;
@@ -10,8 +11,7 @@ export interface Tarefa {
   concluida: boolean;
   prioridade?: 'baixa' | 'media' | 'alta';
   data_vencimento?: string;
-  created_at?: string;
-  updated_at?: string;
+  criado_em?: string; // corresponde ao campo retornado pelo TarefaResource
 }
 
 @Injectable({
@@ -19,7 +19,7 @@ export interface Tarefa {
 })
 export class TarefasService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/tarefas';
+  private apiUrl = `${environment.apiUrl}/tarefas`;
 
   getTarefas(): Observable<Tarefa[]> {
     return this.http.get<{data: Tarefa[]}>(this.apiUrl).pipe(

@@ -259,3 +259,45 @@ a:hover {
   -webkit-overflow-scrolling: touch;
   margin-bottom: 1rem;
 }
+
+/* Preloader Overlay */
+.preloader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(var(--color-bg-main-rgb), 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: all var(--transition-fast);
+
+  .loader-spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid var(--color-primary-light);
+    border-top: 5px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+  }
+
+  .loader-text {
+    font-family: var(--font-family-display);
+    font-weight: 600;
+    color: var(--color-primary-dark);
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

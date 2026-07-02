@@ -48,10 +48,11 @@ class AdminController extends Controller
         ]);
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'is_admin' => $request->is_admin ?? false,
+            'name'              => $request->name,
+            'email'             => $request->email,
+            'password'          => Hash::make($request->password),
+            'is_admin'          => $request->is_admin ?? false,
+            'email_verified_at' => now(), // Admin cria utilizadores já verificados
         ]);
 
         return response()->json(['mensagem' => 'Usuário criado com sucesso', 'user' => $user], 201);
@@ -85,16 +86,21 @@ class AdminController extends Controller
             return response()->json(['mensagem' => 'Você não pode alterar seu próprio privilégio administrativo'], 403);
         }
 
-        $user->is_admin = !$user->is_admin;
-        $user->save();
+        DB::transaction(function () use ($user) {
+            $user->is_admin = !$user->is_admin;
+            $user->save();
 
-        if ($user->is_admin) {
-            $user->tarefas()->delete();
-        }
+            // Quando promovido a admin, as suas tarefas são removidas automaticamente
+            if ($user->is_admin) {
+                $user->tarefas()->delete();
+            }
+        });
 
         $status = $user->is_admin ? 'promovido a administrador' : 'removido do cargo administrativo';
+        $extra  = $user->is_admin ? ' As suas tarefas foram removidas.' : '';
+
         return response()->json([
-            'mensagem' => "Usuário {$status} com sucesso",
+            'mensagem' => "Usuário {$status} com sucesso.{$extra}",
             'is_admin' => $user->is_admin
         ]);
     }

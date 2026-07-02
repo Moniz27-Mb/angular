@@ -1,8 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, timeout, TimeoutError } from 'rxjs';
+import { catchError, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = environment.apiUrl;
 
 @Injectable({
   providedIn: 'root'
@@ -43,26 +45,60 @@ export class AuthService {
 
   login(email: string, password: string): Observable<any> {
     return this.http.post<{token: string, user: any}>(`${API_URL}/login`, { email, password }).pipe(
+      timeout(15000),
       tap(response => {
         if (response.token) {
-          sessionStorage.setItem('token', response.token); // ✅
-          sessionStorage.setItem('user', JSON.stringify(response.user)); // ✅
+          sessionStorage.setItem('token', response.token);
+          sessionStorage.setItem('user', JSON.stringify(response.user));
           this.tokenSubject.next(response.token);
           this.userSubject.next(response.user);
         }
+      }),
+      catchError(err => {
+        if (err instanceof TimeoutError) {
+          return throwError(() => ({ error: { mensagem: 'O servidor demorou muito a responder. Tente novamente.' } }));
+        }
+        return throwError(() => err);
       })
     );
   }
 
   register(name: string, email: string, password: string): Observable<any> {
-    return this.http.post<{token: string, user: any}>(`${API_URL}/register`, { name, email, password }).pipe(
+    return this.http.post<{ token: string; user: any; mensagem?: string }>(
+      `${API_URL}/register`,
+      { name, email, password }
+    ).pipe(
+      timeout(15000),
       tap(response => {
-        if (response.token) {
-          sessionStorage.setItem('token', response.token); // ✅
-          sessionStorage.setItem('user', JSON.stringify(response.user)); // ✅
+        if (response.token && response.user) {
+          sessionStorage.setItem('token', response.token);
+          sessionStorage.setItem('user', JSON.stringify(response.user));
           this.tokenSubject.next(response.token);
           this.userSubject.next(response.user);
         }
+      }),
+      catchError(err => {
+        if (err instanceof TimeoutError) {
+          return throwError(() => ({ error: { mensagem: 'O servidor demorou muito a responder. Tente novamente.' } }));
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
+  loginWithGoogle() {
+    window.location.href = `${API_URL}/auth/google/redirect`;
+  }
+
+  handleSocialLogin(token: string): Observable<any> {
+    sessionStorage.setItem('token', token);
+    this.tokenSubject.next(token);
+    
+    // Fetch the user data with the new token
+    return this.http.get<any>(`${API_URL}/user`).pipe(
+      tap(user => {
+        sessionStorage.setItem('user', JSON.stringify(user));
+        this.userSubject.next(user);
       })
     );
   }
