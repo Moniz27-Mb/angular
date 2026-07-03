@@ -48,7 +48,13 @@ export class Register {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.mensagem || 'Falha ao registrar. Tente novamente.';
+        
+        // Verifica se é um erro de validação (422) e se a mensagem de erro é do e-mail
+        if (err.status === 422 && err.error?.errors?.email) {
+          this.errorMessage = 'Este e-mail já está cadastrado. Por favor, faça login ou use outro.';
+        } else {
+          this.errorMessage = err.error?.mensagem || 'Falha ao registrar. Tente novamente.';
+        }
       }
     });
   }

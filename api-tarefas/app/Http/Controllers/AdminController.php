@@ -117,4 +117,15 @@ class AdminController extends Controller
         $user->restore();
         return response()->json(['mensagem' => 'Usuário restaurado com sucesso', 'user' => $user], 200);
     }
+    
+    public function forceDeleteUser($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        
+        // Remove tarefas definitivamente para evitar lixo no banco
+        $user->tarefas()->withTrashed()->forceDelete();
+        
+        $user->forceDelete();
+        return response()->json(['mensagem' => 'Usuário excluído definitivamente']);
+    }
 }

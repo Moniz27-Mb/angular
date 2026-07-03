@@ -12,7 +12,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'email', 'password', 'is_admin', 'avatar', 'verification_code', 'verification_code_expires_at', 'google_id'])]
+#[Fillable(['name', 'email', 'password', 'is_admin', 'avatar', 'verification_code', 'verification_code_expires_at', 'google_id', 'two_factor_code', 'two_factor_expires_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -24,6 +24,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'two_factor_expires_at' => 'datetime',
         ];
     }
 

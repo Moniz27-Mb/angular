@@ -74,7 +74,7 @@ export class Dashboard implements OnInit {
     titulo: ['', Validators.required],
     descricao: [''],
     prioridade: ['baixa'],
-    data_vencimento: ['', dataPassadaValidator]
+    data_vencimento: ['', [Validators.required, dataPassadaValidator]]
   });
 
   ngOnInit() {

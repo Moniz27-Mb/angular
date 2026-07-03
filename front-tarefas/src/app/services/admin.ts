@@ -42,4 +42,8 @@ export class AdminService {
   restoreUser(id: number): Observable<any> {
     return this.http.post(`${API_URL}/users/${id}/restore`, {});
   }
+
+  forceDeleteUser(id: number): Observable<any> {
+    return this.http.delete(`${API_URL}/users/${id}/force`);
+  }
 }

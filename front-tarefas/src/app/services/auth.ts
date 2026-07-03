@@ -43,15 +43,19 @@ export class AuthService {
     }
   }
 
+  setSession(token: string, user: any) {
+    sessionStorage.setItem('token', token);
+    sessionStorage.setItem('user', JSON.stringify(user));
+    this.tokenSubject.next(token);
+    this.userSubject.next(user);
+  }
+
   login(email: string, password: string): Observable<any> {
     return this.http.post<{token: string, user: any}>(`${API_URL}/login`, { email, password }).pipe(
       timeout(15000),
       tap(response => {
         if (response.token) {
-          sessionStorage.setItem('token', response.token);
-          sessionStorage.setItem('user', JSON.stringify(response.user));
-          this.tokenSubject.next(response.token);
-          this.userSubject.next(response.user);
+          this.setSession(response.token, response.user);
         }
       }),
       catchError(err => {
@@ -71,10 +75,7 @@ export class AuthService {
       timeout(15000),
       tap(response => {
         if (response.token && response.user) {
-          sessionStorage.setItem('token', response.token);
-          sessionStorage.setItem('user', JSON.stringify(response.user));
-          this.tokenSubject.next(response.token);
-          this.userSubject.next(response.user);
+          this.setSession(response.token, response.user);
         }
       }),
       catchError(err => {
@@ -88,19 +89,6 @@ export class AuthService {
 
   loginWithGoogle() {
     window.location.href = `${API_URL}/auth/google/redirect`;
-  }
-
-  handleSocialLogin(token: string): Observable<any> {
-    sessionStorage.setItem('token', token);
-    this.tokenSubject.next(token);
-    
-    // Fetch the user data with the new token
-    return this.http.get<any>(`${API_URL}/user`).pipe(
-      tap(user => {
-        sessionStorage.setItem('user', JSON.stringify(user));
-        this.userSubject.next(user);
-      })
-    );
   }
 
   logout(): Observable<any> {

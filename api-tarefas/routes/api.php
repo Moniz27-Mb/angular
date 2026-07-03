@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TarefaController;
-use App\Http\Controllers\SocialAuthController;
+
 
 // Rotas públicas (sem token) — com rate limiting anti-bruteforce
 Route::middleware('throttle:10,1')->group(function () {
@@ -13,8 +13,8 @@ Route::middleware('throttle:10,1')->group(function () {
 });
 
 // Rotas de Autenticação Social
-Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
-Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+Route::get('/auth/google/redirect', [\App\Http\Controllers\GoogleController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleController::class, 'handleGoogleCallback']);
 
 // Rotas protegidas (precisam de token)
 Route::middleware('auth:sanctum')->group(function () {
@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser']);
         Route::get('/users/{user}/tarefas', [App\Http\Controllers\AdminController::class, 'userTasks']);
         Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'destroyUser']);
+        Route::delete('/users/{id}/force', [App\Http\Controllers\AdminController::class, 'forceDeleteUser']);
         Route::patch('/users/{user}/toggle-admin', [App\Http\Controllers\AdminController::class, 'toggleAdmin']);
     });
 });

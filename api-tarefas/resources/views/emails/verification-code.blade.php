@@ -10,7 +10,7 @@
         <div style="text-align: center; margin: 30px 0;">
             <span style="display: inline-block; font-size: 32px; font-weight: bold; color: #4F46E5; background-color: #EEF2FF; padding: 15px 30px; border-radius: 8px; letter-spacing: 5px;">{{ $code }}</span>
         </div>
-        <p style="color: #666; font-size: 14px;">Este código é válido por 15 minutos.</p>
+        <p style="color: #666; font-size: 14px;">Este código é válido por estritos 3 minutos.</p>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
         <p style="color: #999; font-size: 12px; text-align: center;">Se não solicitou este e-mail, pode ignorá-lo.</p>
     </div>

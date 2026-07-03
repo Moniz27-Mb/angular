@@ -203,6 +203,15 @@ export class AdminDashboard implements OnInit {
     });
   }
 
+  showTrashedSection = false;
+
+  toggleTrashedSection() {
+    this.showTrashedSection = !this.showTrashedSection;
+    if (this.showTrashedSection) {
+      this.loadTrashedUsers();
+    }
+  }
+
   loadTrashedUsers() {
     this.isLoadingTrashedUsers = true;
     this.adminService.getTrashedUsers().subscribe({
@@ -230,6 +239,20 @@ export class AdminDashboard implements OnInit {
         this.notification.error('Erro ao restaurar: ' + (err.error?.mensagem || err.message));
       }
     });
+  }
+
+  forceDeleteUser(id: number) {
+    if(confirm('Tem a certeza absoluta? Esta ação não pode ser desfeita e removerá todos os dados do utilizador.')) {
+      this.adminService.forceDeleteUser(id).subscribe({
+        next: () => {
+          this.trashedUsers = this.trashedUsers.filter(u => u.id !== id);
+          this.notification.success('Usuário apagado definitivamente!');
+        },
+        error: (err) => {
+          this.notification.error('Erro ao apagar: ' + (err.error?.mensagem || err.message));
+        }
+      });
+    }
   }
 
   goPerfil() {
