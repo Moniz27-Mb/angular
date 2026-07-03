@@ -1,4 +1,4 @@
 export const environment = {
-  production: true,
-  apiUrl: 'https://angular-production-e650.up.railway.app/api'
+  production: false,
+  apiUrl: 'http://localhost:8000/api'
 };
