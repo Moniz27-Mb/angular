@@ -97,16 +97,11 @@ export class AuthService {
   }
 
   register(name: string, email: string, password: string): Observable<any> {
-    return this.http.post<{ token: string; user: any; mensagem?: string }>(
+    return this.http.post<{ mensagem?: string }>(
       `${API_URL}/register`,
       { name, email, password }
     ).pipe(
       timeout(15000),
-      tap(response => {
-        if (response.token && response.user) {
-          this.setSession(response.token, response.user);
-        }
-      }),
       catchError(err => {
         if (err instanceof TimeoutError) {
           return throwError(() => ({ error: { mensagem: 'O servidor demorou muito a responder. Tente novamente.' } }));

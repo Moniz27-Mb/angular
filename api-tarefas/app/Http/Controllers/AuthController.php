@@ -17,30 +17,48 @@ class AuthController extends Controller
     {
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users',
+            'email'    => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
-        $user = User::create([
-            'name'              => $request->name,
-            'email'             => $request->email,
-            'password'          => Hash::make($request->password),
-            'email_verified_at' => now(),
-        ]);
+        $email = $request->email;
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Verificar se já existe um usuário com este e-mail
+        $user = User::where('email', $email)->first();
+
+        if ($user) {
+            // Se já estiver verificado, não permite registrar novamente
+            if ($user->email_verified_at) {
+                return response()->json([
+                    'mensagem' => 'Este e-mail já está cadastrado.'
+                ], 422);
+            }
+            // Se não estiver verificado, atualiza o nome e senha
+            $user->name = $request->name;
+            $user->password = Hash::make($request->password);
+            $user->save();
+        } else {
+            // Criar a conta em estado pendente (email_verified_at = null por padrão)
+            $user = User::create([
+                'name'     => $request->name,
+                'email'    => $email,
+                'password' => Hash::make($request->password),
+                'is_admin' => false,
+            ]);
+        }
+
+        // Gerar o OTP de 6 dígitos
+        $otp = sprintf('%06d', random_int(100000, 999999));
+
+        // Salvar na Cache por EXATAMENTE 5 minutos (300 segundos)
+        Cache::put('otp_' . $email, $otp, 300);
+
+        // Disparar o e-mail real com o código de 6 dígitos
+        Mail::to($email)->send(new \App\Mail\SendOtpCode($otp));
 
         return response()->json([
-            'mensagem' => 'Conta criada com sucesso.',
-            'token'    => $token,
-            'user'     => [
-                'id'       => $user->id,
-                'name'     => $user->name,
-                'email'    => $user->email,
-                'is_admin' => (bool) $user->is_admin,
-                'avatar'   => $user->avatar,
-            ],
-        ], 201);
+            'mensagem' => 'Código enviado para o e-mail.'
+        ]);
     }
 
     // POST /api/login

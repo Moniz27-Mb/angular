@@ -18,13 +18,17 @@ export class Login implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
 
   loginForm: FormGroup = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    otpCode: ['', [Validators.pattern(/^\d{6}$/)]]
+    email:    ['', [Validators.required, Validators.email]],
+    otpCode:  ['', [Validators.pattern(/^\d{6}$/)]],
+    password: ['', []]
   });
 
+  /** 'otp' = fluxo passwordless (padrão), 'password' = login tradicional por senha */
+  loginMode: 'otp' | 'password' = 'otp';
   step: 'email' | 'otp' = 'email';
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
   resendCountdown = 0;
   resendInterval: any;
 
@@ -38,7 +42,15 @@ export class Login implements OnInit, OnDestroy {
 
   onSubmit() {
     this.errorMessage = '';
+    this.successMessage = '';
 
+    // Ramo de login por senha (dispositivos de terceiros)
+    if (this.loginMode === 'password') {
+      this.submitPasswordLogin();
+      return;
+    }
+
+    // Ramo OTP - Step 1: enviar e-mail
     if (this.step === 'email') {
       const emailControl = this.loginForm.get('email');
       if (!emailControl || emailControl.invalid) {
@@ -53,6 +65,7 @@ export class Login implements OnInit, OnDestroy {
         next: () => {
           this.isLoading = false;
           this.step = 'otp';
+          this.successMessage = 'Código enviado para o e-mail';
           this.startCountdown();
         },
         error: (err) => {
@@ -60,6 +73,8 @@ export class Login implements OnInit, OnDestroy {
           this.errorMessage = err.error?.mensagem || 'Erro ao enviar o código. Tente novamente.';
         }
       });
+
+    // Ramo OTP - Step 2: verificar código
     } else {
       const codeControl = this.loginForm.get('otpCode');
       if (!codeControl || codeControl.invalid || !codeControl.value) {
@@ -72,7 +87,7 @@ export class Login implements OnInit, OnDestroy {
 
       this.isLoading = true;
       const email = this.loginForm.get('email')?.value;
-      const code = codeControl.value;
+      const code  = codeControl.value;
 
       this.authService.verifyOtp(email, code).subscribe({
         next: (res) => {
@@ -91,6 +106,57 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
+  /** Login tradicional via bcrypt */
+  submitPasswordLogin() {
+    const emailControl    = this.loginForm.get('email');
+    const passwordControl = this.loginForm.get('password');
+
+    let hasError = false;
+    if (!emailControl || emailControl.invalid) {
+      emailControl?.markAsTouched();
+      hasError = true;
+    }
+    if (!passwordControl?.value) {
+      passwordControl?.markAsTouched();
+      this.errorMessage = 'A senha é obrigatória.';
+      hasError = true;
+    }
+    if (hasError) return;
+
+    this.isLoading = true;
+    const email    = emailControl!.value;
+    const password = passwordControl!.value;
+
+    this.authService.login(email, password).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        if (res.user && res.user.is_admin) {
+          this.router.navigate(['/admin']);
+        } else {
+          this.router.navigate(['/tarefas']);
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err.error?.mensagem || 'Credenciais inválidas. Verifique o e-mail e a senha.';
+      }
+    });
+  }
+
+  /** Alterna entre fluxo OTP e fluxo por senha, limpando o estado */
+  toggleLoginMode(mode: 'otp' | 'password') {
+    this.loginMode = mode;
+    this.step = 'email';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.loginForm.get('otpCode')?.reset();
+    this.loginForm.get('password')?.reset();
+    if (this.resendInterval) {
+      clearInterval(this.resendInterval);
+      this.resendCountdown = 0;
+    }
+  }
+
   startCountdown() {
     this.resendCountdown = 60;
     if (this.resendInterval) clearInterval(this.resendInterval);
@@ -106,12 +172,14 @@ export class Login implements OnInit, OnDestroy {
   resendOtp() {
     if (this.resendCountdown > 0 || this.isLoading) return;
     this.errorMessage = '';
+    this.successMessage = '';
     this.isLoading = true;
     const email = this.loginForm.get('email')?.value;
 
     this.authService.sendOtp(email).subscribe({
       next: () => {
         this.isLoading = false;
+        this.successMessage = 'Código enviado para o e-mail';
         this.startCountdown();
       },
       error: (err) => {
@@ -124,6 +192,7 @@ export class Login implements OnInit, OnDestroy {
   changeEmail() {
     this.step = 'email';
     this.errorMessage = '';
+    this.successMessage = '';
     this.loginForm.get('otpCode')?.reset();
     if (this.resendInterval) {
       clearInterval(this.resendInterval);
