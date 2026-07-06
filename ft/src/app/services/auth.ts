@@ -111,6 +111,26 @@ export class AuthService {
     );
   }
 
+  verifyRegistrationOtp(email: string, code: string): Observable<any> {
+    return this.http.post<{ token: string; user: any }>(
+      `${API_URL}/auth/verify-registration`,
+      { email, code }
+    ).pipe(
+      timeout(15000),
+      tap(response => {
+        if (response.token) {
+          this.setSession(response.token, response.user);
+        }
+      }),
+      catchError(err => {
+        if (err instanceof TimeoutError) {
+          return throwError(() => ({ error: { mensagem: 'O servidor demorou muito a responder. Tente novamente.' } }));
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
   loginWithGoogle() {
     window.location.href = `${API_URL}/auth/google/redirect`;
   }

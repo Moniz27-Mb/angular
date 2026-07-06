@@ -14,6 +14,7 @@ Route::middleware('throttle:10,1')->group(function () {
 
 Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:3,1');
 Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:5,1');
+Route::post('/auth/verify-registration', [AuthController::class, 'verifyRegistrationOtp'])->middleware('throttle:5,1');
 
 
 // Rotas de Autenticação Social
