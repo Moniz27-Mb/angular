@@ -21,13 +21,34 @@ class AdminController extends Controller
             ->groupBy('prioridade')
             ->get();
 
+        // Volume de tarefas criadas nos últimos 12 dias (para o gráfico de linha)
+        $tasksCreatedByDay = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $day = now()->subDays($i);
+            $count = Tarefa::whereDate('created_at', $day->toDateString())->count();
+            $tasksCreatedByDay[] = $count;
+        }
+
+        // Tarefas criadas nos blocos de hora: 08h, 10h, 12h, 14h, 16h, 18h, 20h
+        $tasksCreatedByHour = [];
+        $hours = [8, 10, 12, 14, 16, 18, 20];
+        foreach ($hours as $hour) {
+            $count = Tarefa::whereRaw("strftime('%H', created_at) IN (?, ?)", [
+                sprintf('%02d', $hour),
+                sprintf('%02d', $hour + 1)
+            ])->count();
+            $tasksCreatedByHour[] = $count;
+        }
+
         return response()->json([
             'stats' => [
                 'total_users' => $totalUsers,
                 'total_tasks' => $totalTasks,
                 'completed_tasks' => $completedTasks,
                 'pending_tasks' => $pendingTasks,
-                'tasks_by_priority' => $tasksByPriority
+                'tasks_by_priority' => $tasksByPriority,
+                'tasks_created_by_day' => $tasksCreatedByDay,
+                'tasks_created_by_hour' => $tasksCreatedByHour
             ]
         ]);
     }

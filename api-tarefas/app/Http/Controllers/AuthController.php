@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class AuthController extends Controller
@@ -62,6 +65,79 @@ class AuthController extends Controller
             $user->save();
         }
 
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'user'  => $user,
+        ]);
+    }
+
+    // POST /api/auth/send-otp
+    public function sendOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $email = $request->email;
+
+        // Verificar/criar o usuário (is_admin = false por padrão se for novo)
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            $user = User::create([
+                'name' => explode('@', $email)[0],
+                'email' => $email,
+                'password' => Hash::make(Str::random(16)),
+                'is_admin' => false,
+            ]);
+        }
+
+        // Gerar o OTP de 6 dígitos
+        $otp = sprintf('%06d', random_int(100000, 999999));
+
+        // Salvar na Cache por EXATAMENTE 5 minutos (300 segundos)
+        Cache::put('otp_' . $email, $otp, 300);
+
+        // Disparar o e-mail
+        Mail::to($email)->send(new \App\Mail\SendOtpCode($otp));
+
+        return response()->json([
+            'mensagem' => 'Código de acesso enviado para o seu e-mail.'
+        ]);
+    }
+
+    // POST /api/auth/verify-otp
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'code'  => 'required|string|size:6',
+        ]);
+
+        $email = $request->email;
+        $code = $request->code;
+
+        $cachedOtp = Cache::get('otp_' . $email);
+
+        if (!$cachedOtp || $cachedOtp !== $code) {
+            return response()->json([
+                'mensagem' => 'Código inválido ou expirado.'
+            ], 422);
+        }
+
+        // Limpar a cache se correto
+        Cache::forget('otp_' . $email);
+
+        $user = User::where('email', $email)->firstOrFail();
+
+        // Marcar email_verified_at = now()
+        if (!$user->email_verified_at) {
+            $user->email_verified_at = now();
+            $user->save();
+        }
+
+        // Retornar o token de acesso (Sanctum)
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

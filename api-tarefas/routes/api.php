@@ -12,6 +12,10 @@ Route::middleware('throttle:10,1')->group(function () {
     Route::post('/login',    [AuthController::class, 'login']);
 });
 
+Route::post('/auth/send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:3,1');
+Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:5,1');
+
+
 // Rotas de Autenticação Social
 Route::get('/auth/google/redirect', [\App\Http\Controllers\GoogleController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleController::class, 'handleGoogleCallback']);

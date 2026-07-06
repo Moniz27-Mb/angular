@@ -46,9 +46,31 @@ export class AdminDashboard implements OnInit {
     return list;
   }
 
-  // Mock data for charts
-  workflowData = [25, 45, 35, 60, 40, 55, 75, 50, 70, 65, 80, 95];
-  marketingData = [40, 60, 45, 80, 50, 90, 70, 85, 60, 95, 75, 100];
+  // Real data for charts (fallback values)
+  workflowData: number[] = Array(12).fill(0);
+  marketingData: number[] = Array(7).fill(0);
+
+  get normalizedWorkflowData(): number[] {
+    if (!this.workflowData || this.workflowData.length === 0) {
+      return Array(12).fill(10);
+    }
+    const max = Math.max(...this.workflowData);
+    if (max === 0) {
+      return Array(12).fill(10);
+    }
+    return this.workflowData.map(v => 15 + (v / max) * 70);
+  }
+
+  get normalizedMarketingData(): number[] {
+    if (!this.marketingData || this.marketingData.length === 0) {
+      return Array(7).fill(5);
+    }
+    const max = Math.max(...this.marketingData);
+    if (max === 0) {
+      return Array(7).fill(5);
+    }
+    return this.marketingData.map(v => 5 + (v / max) * 90);
+  }
 
   // New User Form
   showUserForm = false;
@@ -98,6 +120,14 @@ export class AdminDashboard implements OnInit {
     next: (res) => {
       this.stats = res.stats.stats;
       this.users = res.users.users;
+      
+      if (this.stats && this.stats.tasks_created_by_day) {
+        this.workflowData = this.stats.tasks_created_by_day;
+      }
+      if (this.stats && this.stats.tasks_created_by_hour) {
+        this.marketingData = this.stats.tasks_created_by_hour;
+      }
+      
       this.cdr.detectChanges();
     },
     error: (err) => {

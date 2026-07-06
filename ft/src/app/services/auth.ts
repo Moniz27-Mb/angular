@@ -67,6 +67,35 @@ export class AuthService {
     );
   }
 
+  sendOtp(email: string): Observable<any> {
+    return this.http.post(`${API_URL}/auth/send-otp`, { email }).pipe(
+      timeout(15000),
+      catchError(err => {
+        if (err instanceof TimeoutError) {
+          return throwError(() => ({ error: { mensagem: 'O servidor demorou muito a responder. Tente novamente.' } }));
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
+  verifyOtp(email: string, code: string): Observable<any> {
+    return this.http.post<{token: string, user: any}>(`${API_URL}/auth/verify-otp`, { email, code }).pipe(
+      timeout(15000),
+      tap(response => {
+        if (response.token) {
+          this.setSession(response.token, response.user);
+        }
+      }),
+      catchError(err => {
+        if (err instanceof TimeoutError) {
+          return throwError(() => ({ error: { mensagem: 'O servidor demorou muito a responder. Tente novamente.' } }));
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
   register(name: string, email: string, password: string): Observable<any> {
     return this.http.post<{ token: string; user: any; mensagem?: string }>(
       `${API_URL}/register`,
