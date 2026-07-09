@@ -1,8 +1,28 @@
 import { Component, OnInit, OnDestroy, inject, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';
+
+export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const password = control.get('password');
+  const confirmPassword = control.get('confirmPassword');
+
+  if (!password || !confirmPassword) return null;
+
+  if (password.value !== confirmPassword.value) {
+    confirmPassword.setErrors({ mismatch: true });
+    return { passwordMismatch: true };
+  } else {
+    const errors = confirmPassword.errors;
+    if (errors) {
+      delete errors['mismatch'];
+      const hasErrors = Object.keys(errors).length > 0;
+      confirmPassword.setErrors(hasErrors ? errors : null);
+    }
+  }
+  return null;
+};
 
 @Component({
   selector: 'app-register',
@@ -22,8 +42,9 @@ export class Register implements OnInit, OnDestroy {
     name: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: ['', [Validators.required]],
     otpCode: ['', [Validators.pattern(/^\d{6}$/)]]
-  });
+  }, { validators: passwordMatchValidator });
 
   step: 'register' | 'otp' = 'register';
   isLoading = false;
@@ -31,14 +52,29 @@ export class Register implements OnInit, OnDestroy {
   successMessage = '';
   resendCountdown = 0;
   resendInterval: any;
+  formSubmitted = false;
 
   /** Controlo de visibilidade da senha */
   showPassword = false;
+  showConfirmPassword = false;
 
   /** Dígitos individuais do OTP */
   otpDigits: string[] = ['', '', '', '', '', ''];
 
   ngOnInit() {}
+
+  /** Retorna o e-mail parcialmente mascarado (ex: mo***@gmail.com) */
+  get maskedEmail(): string {
+    const email = this.registerForm.get('email')?.value || '';
+    const parts = email.split('@');
+    if (parts.length !== 2) return email;
+    const name = parts[0];
+    const domain = parts[1];
+    if (name.length <= 2) {
+      return `${name}***@${domain}`;
+    }
+    return `${name.substring(0, 2)}***@${domain}`;
+  }
 
   /** Processa input nas caixas OTP e avança automaticamente */
   onOtpInput(event: Event, index: number) {
@@ -98,14 +134,18 @@ export class Register implements OnInit, OnDestroy {
     this.successMessage = '';
 
     if (this.step === 'register') {
+      this.formSubmitted = true;
+
       const nameControl = this.registerForm.get('name');
       const emailControl = this.registerForm.get('email');
       const passwordControl = this.registerForm.get('password');
+      const confirmPasswordControl = this.registerForm.get('confirmPassword');
 
-      if (!nameControl || nameControl.invalid || !emailControl || emailControl.invalid || !passwordControl || passwordControl.invalid) {
+      if (this.registerForm.invalid) {
         nameControl?.markAsTouched();
         emailControl?.markAsTouched();
         passwordControl?.markAsTouched();
+        confirmPasswordControl?.markAsTouched();
         return;
       }
 
@@ -192,6 +232,7 @@ export class Register implements OnInit, OnDestroy {
 
   changeEmail() {
     this.step = 'register';
+    this.formSubmitted = false;
     this.errorMessage = '';
     this.successMessage = '';
     this.clearOtpDigits();

@@ -10,7 +10,7 @@
 
     <form (ngSubmit)="onSubmit()" [formGroup]="registerForm" autocomplete="off">
 
-      <!-- ALERTAS -->
+      <!-- ALERTAS GLOBAIS -->
       <div class="alert alert-danger" *ngIf="errorMessage">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
         <span>{{ errorMessage }}</span>
@@ -32,30 +32,29 @@
 
         <!-- Nome -->
         <div class="form-field">
-          <div class="input-wrapper" [class.input-wrapper--error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+          <div class="input-wrapper" [class.input-wrapper--error]="registerForm.get('name')?.invalid && (registerForm.get('name')?.touched || formSubmitted)">
             <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             <input type="text" id="name" formControlName="name" class="field-input" placeholder="Nome completo" autocomplete="name">
           </div>
-          <div class="field-error" *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
-            <small>O nome é obrigatório.</small>
+          <div class="field-error" *ngIf="registerForm.get('name')?.invalid && (registerForm.get('name')?.touched || formSubmitted)">
+            <small>Informe seu nome completo.</small>
           </div>
         </div>
 
         <!-- E-mail -->
         <div class="form-field">
-          <div class="input-wrapper" [class.input-wrapper--error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+          <div class="input-wrapper" [class.input-wrapper--error]="registerForm.get('email')?.invalid && (registerForm.get('email')?.touched || formSubmitted)">
             <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
             <input type="email" id="email" formControlName="email" class="field-input" placeholder="Email" autocomplete="email">
           </div>
-          <div class="field-error" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
-            <small *ngIf="registerForm.get('email')?.errors?.['required']">O e-mail é obrigatório.</small>
-            <small *ngIf="registerForm.get('email')?.errors?.['email']">Digite um e-mail válido.</small>
+          <div class="field-error" *ngIf="registerForm.get('email')?.invalid && (registerForm.get('email')?.touched || formSubmitted)">
+            <small>Informe um e-mail válido.</small>
           </div>
         </div>
 
         <!-- Senha -->
         <div class="form-field">
-          <div class="input-wrapper" [class.input-wrapper--error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+          <div class="input-wrapper" [class.input-wrapper--error]="registerForm.get('password')?.invalid && (registerForm.get('password')?.touched || formSubmitted)">
             <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             <input [type]="showPassword ? 'text' : 'password'" id="password" formControlName="password" class="field-input" placeholder="Senha" autocomplete="new-password">
             <button type="button" class="toggle-password" (click)="showPassword = !showPassword" tabindex="-1">
@@ -63,14 +62,30 @@
               <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
             </button>
           </div>
-          <div class="field-error" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-            <small *ngIf="registerForm.get('password')?.errors?.['required']">A senha é obrigatória.</small>
-            <small *ngIf="registerForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres.</small>
+          <div class="field-error" *ngIf="registerForm.get('password')?.invalid && (registerForm.get('password')?.touched || formSubmitted)">
+            <small *ngIf="registerForm.get('password')?.errors?.['required']">Informe uma senha.</small>
+            <small *ngIf="registerForm.get('password')?.errors?.['minlength']">A senha deve ter pelo menos 6 caracteres.</small>
+          </div>
+        </div>
+
+        <!-- Confirmar Senha -->
+        <div class="form-field">
+          <div class="input-wrapper" [class.input-wrapper--error]="registerForm.get('confirmPassword')?.invalid && (registerForm.get('confirmPassword')?.touched || formSubmitted)">
+            <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <input [type]="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" formControlName="confirmPassword" class="field-input" placeholder="Confirmar senha" autocomplete="new-password">
+            <button type="button" class="toggle-password" (click)="showConfirmPassword = !showConfirmPassword" tabindex="-1">
+              <svg *ngIf="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg *ngIf="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+          </div>
+          <div class="field-error" *ngIf="registerForm.get('confirmPassword')?.invalid && (registerForm.get('confirmPassword')?.touched || formSubmitted)">
+            <small *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">Confirme sua senha.</small>
+            <small *ngIf="registerForm.get('confirmPassword')?.errors?.['mismatch']">As senhas não coincidem.</small>
           </div>
         </div>
 
         <button type="submit" id="btn-register" class="btn-primary"
-          [disabled]="registerForm.get('name')?.invalid || registerForm.get('email')?.invalid || registerForm.get('password')?.invalid || isLoading">
+          [disabled]="isLoading">
           <svg *ngIf="isLoading" class="rotate" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
           <span>{{ isLoading ? 'Cadastrando...' : 'Cadastrar' }}</span>
         </button>
@@ -86,7 +101,7 @@
       </div>
 
       <!-- ═══════════════════════════════
-           STEP 2: Verificação OTP
+           STEP 2: Verificação OTP por E-mail
       ═══════════════════════════════ -->
       <div *ngIf="step === 'otp'" class="animate-in">
 
@@ -97,8 +112,8 @@
           </div>
         </div>
 
-        <h3 class="verify-title">Verifique seu número</h3>
-        <p class="verify-subtitle">Enviamos um código de 6 dígitos para<br><strong>{{ registerForm.get('email')?.value }}</strong></p>
+        <h3 class="verify-title">Verifique seu e-mail</h3>
+        <p class="verify-subtitle">Enviamos um código de 6 dígitos para o seu e-mail<br><strong>{{ maskedEmail }}</strong></p>
 
         <!-- 6 caixas OTP -->
         <div class="otp-boxes" (paste)="onOtpPaste($event)">
