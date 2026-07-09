@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,6 +16,8 @@ export class Register implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
 
+  @ViewChildren('otpBox') otpBoxes!: QueryList<ElementRef<HTMLInputElement>>;
+
   registerForm: FormGroup = this.fb.group({
     name: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
@@ -30,7 +32,66 @@ export class Register implements OnInit, OnDestroy {
   resendCountdown = 0;
   resendInterval: any;
 
+  /** Controlo de visibilidade da senha */
+  showPassword = false;
+
+  /** Dígitos individuais do OTP */
+  otpDigits: string[] = ['', '', '', '', '', ''];
+
   ngOnInit() {}
+
+  /** Processa input nas caixas OTP e avança automaticamente */
+  onOtpInput(event: Event, index: number) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value.replace(/\D/g, '');
+    this.otpDigits[index] = value.slice(0, 1);
+    input.value = this.otpDigits[index];
+
+    // Sincroniza com o formControl
+    const combined = this.otpDigits.join('');
+    this.registerForm.get('otpCode')?.setValue(combined);
+
+    // Avança para o próximo campo
+    if (value && index < 5) {
+      const next = this.otpBoxes.toArray()[index + 1];
+      next?.nativeElement.focus();
+    }
+  }
+
+  /** Retrocede ao apagar com Backspace */
+  onOtpKeydown(event: KeyboardEvent, index: number) {
+    if (event.key === 'Backspace') {
+      if (!this.otpDigits[index] && index > 0) {
+        this.otpDigits[index - 1] = '';
+        this.registerForm.get('otpCode')?.setValue(this.otpDigits.join(''));
+        const prev = this.otpBoxes.toArray()[index - 1];
+        prev?.nativeElement.focus();
+      } else {
+        this.otpDigits[index] = '';
+        this.registerForm.get('otpCode')?.setValue(this.otpDigits.join(''));
+      }
+    }
+  }
+
+  /** Suporte a colar o código de uma vez */
+  onOtpPaste(event: ClipboardEvent) {
+    event.preventDefault();
+    const pasted = event.clipboardData?.getData('text').replace(/\D/g, '').slice(0, 6) || '';
+    for (let i = 0; i < 6; i++) {
+      this.otpDigits[i] = pasted[i] || '';
+    }
+    this.registerForm.get('otpCode')?.setValue(this.otpDigits.join(''));
+    const lastFilled = Math.min(pasted.length, 5);
+    setTimeout(() => {
+      this.otpBoxes.toArray()[lastFilled]?.nativeElement.focus();
+    });
+  }
+
+  /** Limpa os dígitos OTP */
+  clearOtpDigits() {
+    this.otpDigits = ['', '', '', '', '', ''];
+    this.registerForm.get('otpCode')?.setValue('');
+  }
 
   onSubmit() {
     this.errorMessage = '';
@@ -119,7 +180,7 @@ export class Register implements OnInit, OnDestroy {
     this.authService.sendOtp(email).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = 'Código enviado para o e-mail';
+        this.successMessage = 'Código reenviado para o e-mail';
         this.startCountdown();
       },
       error: (err) => {
@@ -133,7 +194,7 @@ export class Register implements OnInit, OnDestroy {
     this.step = 'register';
     this.errorMessage = '';
     this.successMessage = '';
-    this.registerForm.get('otpCode')?.reset();
+    this.clearOtpDigits();
     if (this.resendInterval) {
       clearInterval(this.resendInterval);
       this.resendCountdown = 0;
